@@ -1,5 +1,4 @@
-﻿import * as d3 from 'd3';
-
+﻿
 export default function () {
     function getDate(x: number): string {
         // 获取当前日期
@@ -34,8 +33,8 @@ export default function () {
         const innerWidth = width - margin.left - margin.right;
         const innerHeight = height - margin.top - margin.bottom;
 
-        return { margin, innerWidth, innerHeight }
+        return { margin, innerWidth, innerHeight };
     }
 
-    return { getDate, getAxisData }
+    return { getDate, getAxisData };
 }

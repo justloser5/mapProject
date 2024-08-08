@@ -6,17 +6,19 @@
 </template>
 
 <script setup lang="ts">
-import lineChart from "./lineChart.vue"
-import { onMounted, onUnmounted, ref, watch } from "vue"
-import AMapLoader from "@amap/amap-jsapi-loader"
-import { useLineStore } from '@/store/lineChart'
-import { usePieStore } from "@/store/pieChart"
-import useColor from '@/hooks/useColor'
-import useCustomLayer from "@/hooks/useCustomLayer"
-import { type PieData } from '@/types'
+import lineChart from "./lineChart.vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import AMapLoader from "@amap/amap-jsapi-loader";
+import { useLineStore } from '@/store/lineChart';
+import { usePieStore } from "@/store/pieChart";
+import useColor from '@/hooks/useColor';
+import useCustomLayer from "@/hooks/useCustomLayer";
+import { type PieData } from '@/types';
+import { storeToRefs } from "pinia";
 
 //解构
 const lineStore = useLineStore();
+const { lineToPolygon } = storeToRefs(lineStore);
 const pieStore = usePieStore();
 const { getColor, colorDistance } = useColor();
 const { customSvg } = useCustomLayer();
@@ -29,6 +31,7 @@ let svgFlag = ref(1); //标记放大画布是否出现，出现则关闭地图�
 let lineNumber = ref(1); //标记线条的数量，大于4则不再绘制
 let streets: string[] = []; //记录已经绘制的街道名
 let colors: string[] = [];  //记录绘制使用的颜色
+let polygonMap = new Map(); //存储多边形数据
 let maxScale: number = 0; //计算折线图坐标轴的最大刻度
 for (let infection of lineStore.infection_list) {
   let i = Math.max(...infection['daily_infected']);
@@ -47,6 +50,7 @@ onMounted(() => {
     plugins: ["AMap.Scale"], //需要使用的的插件列表，如比例尺'AMap.Scale'，支持添加多个如：['...','...']
   })
     .then((AMap) => {
+
       map = new AMap.Map("mapContainer", {
         // 设置地图容器id
         center: [113.273889, 23.030791], //广州塔经纬度
@@ -99,20 +103,6 @@ onMounted(() => {
             infoWindow.setPosition(e.lnglat); // 设置信息窗体位置
             if (svgFlag.value) { infoWindow.open(map); } // 打开信息窗体
 
-          })
-
-          //添加鼠标悬浮事件
-          polygon.on('mouseover', () => {
-            polygon.setOptions({ fillOpacity: 0.7, fillColor: '#ffdf33' });
-
-            let transformedData: PieData[] = [
-              { title: "绿化", rate: feature.properties.green_rate },
-              { title: "水文", rate: feature.properties.blue_rate },
-              { title: "混凝土", rate: feature.properties.other_rate }
-            ];
-
-            if (svgFlag.value) { pieStore.drawPie('svg', transformedData, feature.properties.Name); }
-
             //如果放大画布未显示，且该街道病例折线并未绘制过，则绘制相应折线
             if (svgFlag.value && !streets.includes(feature.properties.Name)) {
 
@@ -137,15 +127,34 @@ onMounted(() => {
                 }
               }
             }
-          })
+
+          });
+
+          //添加鼠标悬浮事件
+          polygon.on('mouseover', () => {
+            polygon.setOptions({ fillOpacity: 0.7, fillColor: '#ffdf33' });
+
+            let transformedData: PieData[] = [
+              { title: "绿化", rate: feature.properties.green_rate },
+              { title: "水文", rate: feature.properties.blue_rate },
+              { title: "混凝土", rate: feature.properties.other_rate }
+            ];
+
+            if (svgFlag.value) { pieStore.drawPie('svg', transformedData, feature.properties.Name); }
+
+          });
 
           //添加鼠标移开事件
           polygon.on('mouseout', () => {
             polygon.setOptions({ fillOpacity: 0.5, fillColor: feature.properties.fill_color });
             if (svgFlag.value) { pieStore.clearPie('svg'); }
-          })
+          });
+
+          //将多边形数据添加到polygonMap中
+          polygonMap.set(feature.properties.Name, polygon);
 
           map.add(polygon);
+
         });
       }
 
@@ -161,7 +170,24 @@ onMounted(() => {
           zoomEnable: newValue,
           rotateEnable: newValue
         });
-      })
+      });
+
+      watch(lineToPolygon, () => {
+        if (lineToPolygon.value && svgFlag.value) {
+          //获取多边形区域中点的经纬度
+          const myLngLat = polygonMap.get(lineToPolygon.value).getBounds().getCenter();
+          //将地图中心设置为多边形中点
+          map.setCenter([myLngLat.lng, myLngLat.lat]);
+          //主动触发悬浮事件，将多边形高亮
+          polygonMap.get(lineToPolygon.value).emit('mouseover');
+          //清除饼图，防止重叠
+          pieStore.clearPie('svg');
+        }
+
+        //将lineToPolygon.value设置为空，以便连续点击仍能触发监听
+        lineToPolygon.value = '';
+
+      });
 
     })
     .catch((e) => {

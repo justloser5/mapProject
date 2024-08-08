@@ -1,7 +1,7 @@
-﻿import { defineStore } from 'pinia'
-import data from "@/dataFile/data.json"
-import * as d3 from 'd3'
-import { type PieData } from '@/types'
+﻿import { defineStore } from 'pinia';
+import data from "@/dataFile/data.json";
+import * as d3 from 'd3';
+import { type PieData } from '@/types';
 
 
 export const usePieStore = defineStore('pieChart', {
@@ -9,7 +9,7 @@ export const usePieStore = defineStore('pieChart', {
     state() {
         return {
             data: data
-        }
+        };
     },
 
     actions: {
@@ -136,4 +136,4 @@ export const usePieStore = defineStore('pieChart', {
         }
     }
 
-})
+});

@@ -17,8 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import { useLineStore } from '@/store/lineChart'
-import { onMounted } from "vue"
+import { useLineStore } from '@/store/lineChart';
+import { onMounted } from "vue";
 
 const lineStore = useLineStore();
 const totalSvgId = "#totalLineSvg";
@@ -53,8 +53,8 @@ function enlarge(parent: any, index: number) {
     parent.svgFlag = 0;
 
     //将矩形和图像的可见性设置会可见
-    const rect = parent.customSvg.getElementById("rect")
-    const img = parent.customSvg.getElementById("img")
+    const rect = parent.customSvg.getElementById("rect");
+    const img = parent.customSvg.getElementById("img");
     rect.setAttribute("visibility", "visible");
     img.setAttribute("visibility", "visible");
 
@@ -65,13 +65,14 @@ function enlarge(parent: any, index: number) {
             for (let infection of lineStore.infection_list) {
                 if (infection["Name"] === parent.streets[i]) {
                     lineStore.drawLine("#svg", maxScale, infection["daily_infected"], parent.colors[i], i + 1, parent.streets[i]);
+
                     break;
                 }
             }
         }
     } else {
         lineStore.drawAxes("#svg", totalMaxScale, "广州市每日感染人数");
-        lineStore.drawLine("#svg", totalMaxScale, lineStore.total_infection.daily_infected, '#ffaa00')
+        lineStore.drawLine("#svg", totalMaxScale, lineStore.total_infection.daily_infected, '#ffaa00');
     }
 
     //为img添加点击事件，用来关闭放大画布
@@ -81,7 +82,7 @@ function enlarge(parent: any, index: number) {
         img.setAttribute("visibility", "hidden");
         lineStore.clearLineChart("#svg");
 
-    })
+    });
 
 }
 
@@ -89,11 +90,10 @@ function enlarge(parent: any, index: number) {
 onMounted(() => {
 
     lineStore.drawAxes(totalSvgId, totalMaxScale, "广州市每日感染人数");
-    lineStore.drawLine(totalSvgId, totalMaxScale, lineStore.total_infection.daily_infected, '#ffaa00')
-
+    lineStore.drawLine(totalSvgId, totalMaxScale, lineStore.total_infection.daily_infected, '#ffaa00');
     lineStore.drawAxes(partSvgID, maxScale);
 
-})
+});
 
 </script>
 

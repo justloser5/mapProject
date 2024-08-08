@@ -64,8 +64,8 @@
 
     //计算颜色间的欧氏距离，小于20则认为颜色相近
     function colorDistance(color1: string, color2: string): number {
-        const rgb1 = hexToRgb(color1)
-        const rgb2 = hexToRgb(color2)
+        const rgb1 = hexToRgb(color1);
+        const rgb2 = hexToRgb(color2);
 
         const lab1 = rgbToLab(rgb1);
         const lab2 = rgbToLab(rgb2);
@@ -76,5 +76,5 @@
         return Math.sqrt(Math.pow(L1 - L2, 2) + Math.pow(a1 - a2, 2) + Math.pow(b1 - b2, 2));
     }
 
-    return { getColor, colorDistance }
+    return { getColor, colorDistance };
 }

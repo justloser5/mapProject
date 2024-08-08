@@ -1,6 +1,6 @@
-﻿import { defineStore } from 'pinia'
-import infection from "@/dataFile/infection_data.json"
-import total_infection from "@/dataFile/total_infection.json"
+﻿import { defineStore } from 'pinia';
+import infection from "@/dataFile/infection_data.json";
+import total_infection from "@/dataFile/total_infection.json";
 import * as d3 from 'd3';
 import useLineChart from '@/hooks/useLineChart';
 
@@ -12,8 +12,9 @@ export const useLineStore = defineStore('lineChart', {
         //返回病例数据
         return {
             infection_list: infection['infections'],
-            total_infection: total_infection
-        }
+            total_infection: total_infection,
+            lineToPolygon: '',
+        };
     },
 
     actions: {
@@ -90,8 +91,11 @@ export const useLineStore = defineStore('lineChart', {
          *  flag：可选属性，记录线条的个数，streetName：可选属性，街道名称 
          */
         drawLine(svgId: string, maxScale: number, data: number[], lineColor: string, flag?: number, streetName?: string): void {
+
+            const store = this;
+
             const svg = d3.select(svgId);
-            const { margin, innerWidth, innerHeight } = getAxisData(svgId)
+            const { margin, innerWidth, innerHeight } = getAxisData(svgId);
 
             const xScale = d3.scaleLinear()
                 .domain([0, data.length])
@@ -134,18 +138,22 @@ export const useLineStore = defineStore('lineChart', {
                 .attr('cx', (d, i) => xScale(i)) //计算坐标
                 .attr('cy', d => yScale(d))
                 .style("opacity", 0) //设置为不可见
+                .on('click', function () {
+                    console.log('被点击了', store.lineToPolygon);
+                    store.lineToPolygon = streetName || '';
+                })
                 .on('mouseover', function (event, d) {
                     const i = data.indexOf(d); //获取数据索引
                     d3.select(this).style('opacity', 1); //鼠标悬停时设置为可见
-                    let tooltipElement = document.querySelector('.tooltip');
+                    const tooltipElement = document.querySelector('.tooltip');
 
                     //设置工具提示的内容
                     tooltip.html(`${getDate(180 - i)} : ${d}`)
                         .style("left", () => {
                             //调整工具框内容，防止超出可用屏幕边界
-                            let maxWidth: any = document.documentElement.clientWidth
-                            let toolWidth: any = event.pageX + tooltipElement?.clientWidth
-                            let toolPosition = (toolWidth < maxWidth) ? 10 : toolWidth - maxWidth;
+                            const maxWidth: any = document.documentElement.clientWidth;
+                            const toolWidth: any = event.pageX + tooltipElement?.clientWidth;
+                            const toolPosition = (toolWidth < maxWidth) ? 10 : toolWidth - maxWidth;
                             return `${event.pageX - toolPosition - 10}px`;
                         })
                         .style("top", `${event.pageY + 10}px`)
@@ -188,4 +196,4 @@ export const useLineStore = defineStore('lineChart', {
             svg.selectAll('.tick line').remove();
         }
     }
-})
+});
