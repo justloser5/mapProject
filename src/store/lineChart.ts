@@ -124,11 +124,12 @@ export const useLineStore = defineStore('lineChart', {
             const tooltip = d3.select("body").append("div") //在 body 内部添加 div
                 .attr("class", "tooltip")
                 .style("position", "absolute")
+                .style("top", "-30px")
                 .style("background-color", "#ffffff")
                 .style("padding", "5px")
                 .style("border", `4px solid ${lineColor}`)
                 .style("border-radius", "5px")
-                .style("opacity", 0);
+                .style("opacity", 1);
 
             g.selectAll('circle')
                 .data(data) //选择所有的 circle 元素，并将 data 与这些元素进行绑定
